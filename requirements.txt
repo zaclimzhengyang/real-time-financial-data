@@ -1,0 +1,5 @@
+kafka-python==2.0.2
+yfinance==0.2.26
+SQLAlchemy==2.0.19
+psycopg2-binary==2.9.11
+pandas==2.1.2
