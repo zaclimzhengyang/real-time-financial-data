@@ -1,10 +1,14 @@
 import json
+import os
 import time
 import requests
 from kafka import KafkaProducer
 from config.settings import (
     KAFKA_BOOTSTRAP_SERVERS,
     KAFKA_TOPIC)
+from dotenv import load_dotenv
+
+load_dotenv()
 
 producer = KafkaProducer(
     bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
@@ -19,7 +23,7 @@ def fetch_and_send(tickers: list):
                 "https://finnhub.io/api/v1/quote",
                 params={
                     "symbol": ticker,
-                    "token": ""
+                    "token": os.getenv("FINNHUB_API_KEY")
                 },
                 timeout=5
             )
