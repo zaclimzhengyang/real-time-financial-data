@@ -1,19 +1,17 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Table, Column, Integer, String, Float, DateTime, MetaData
 
-Base = declarative_base()
+metadata = MetaData()
 
-class StockData(Base):
-    __tablename__ = "stock_data"
-
-    id = Column(Integer, primary_key=True, index=True)
-    ticker = Column(String, index=True)
-    timestamp = Column(DateTime, index=True)
-
-    open = Column(Float)
-    high = Column(Float)
-    low = Column(Float)
-    close = Column(Float)
-    prev_close = Column(Float)
-    source = Column(String)
-
+stock_data = Table(
+    "stock_data",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("ticker", String),
+    Column("timestamp", DateTime),
+    Column("open", Float),
+    Column("high", Float),
+    Column("low", Float),
+    Column("close", Float),
+    Column("prev_close", Float),
+    Column("source", String),
+)

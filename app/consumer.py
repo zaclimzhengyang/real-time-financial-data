@@ -1,12 +1,9 @@
 import json
 import datetime
 from kafka import KafkaConsumer
-from app.db import SessionLocal, engine
-from app.models import StockData, Base
+from sqlalchemy import Engine, insert
+from app.models import stock_data
 from config.settings import KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC
-
-# Base.metadata.create_all(bind=engine)
-# print("Tables created!")
 
 consumer = KafkaConsumer(
     KAFKA_TOPIC,
@@ -17,35 +14,27 @@ consumer = KafkaConsumer(
     value_deserializer=lambda m: json.loads(m.decode("utf-8"))
 )
 
-def save_to_db(record: dict):
-    session = SessionLocal()
 
-    try:
-        stock = StockData(
-            ticker=record["ticker"],
-            timestamp=datetime.datetime.fromtimestamp(
-                record["timestamp"],
-                tz=datetime.timezone.utc
-            ),
-            open=record["open"],
-            high=record["high"],
-            low=record["low"],
-            close=record["close"],
-            prev_close=record["prev_close"],
-            source=record["source"]
-        )
+def save_to_db(record: dict, engine: Engine):
+    stmt = insert(stock_data).values(
+        ticker=record["ticker"],
+        timestamp=datetime.datetime.fromtimestamp(record["timestamp"], tz=datetime.timezone.utc),
+        open=record["open"],
+        high=record["high"],
+        low=record["low"],
+        close=record["close"],
+        prev_close=record["prev_close"],
+        source=record["source"]
+    )
 
-        session.add(stock)
-        session.commit()
+    with engine.connect() as conn:
+        try:
+            conn.execute(stmt)
+            conn.commit()
+            print(f"💾 Saved {record['ticker']} @ {record['timestamp']}")
+        except Exception as e:
+            print(f"🔴 DB error: {e}")
 
-        print(f"💾 Saved {record['ticker']} @ {record['timestamp']}")
-
-    except Exception as e:
-        session.rollback()
-        print(f"🔴 DB error: {e}")
-
-    finally:
-        session.close()
 
 if __name__ == "__main__":
     for msg in consumer:
